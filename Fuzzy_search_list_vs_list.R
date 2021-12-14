@@ -44,23 +44,22 @@ testsample = kenfct[, 1:2]
 
 #Reading from the Dictionary
 dictionary <- read_csv(here::here('metadata', "MAPS_Dictionary_v2.5.csv")) %>%
-  rename(fooditem = FoodName_3)
+  rename(fooditem = FoodName_3) #This rename is here as the fuzzy search requires the columns being checked to be the same name
 
 Encoding(dictionary$fooditem)<-"latin1" #This helps tidy up any special characters into a format that stringdist_join can read. Its setting the column encoding
 
 dict_testsample = dictionary[,c(9,11)]        
-#dict_testsample = dictionary[411,c(9,11)]
-print(dict_testsample)
+#dict_testsample = dictionary[411,c(9,11)] #This entry was the problematic one - the accented e in rosé caused Fuzzy search to break
 
-fuzzy_output <-stringdist_join(testsample, dict_testsample, 
-                by = "fooditem",
+fuzzy_output <-stringdist_join(testsample, dict_testsample, #This selects the two lists to check matches against
+                by = "fooditem", #This allows you to select the field by which the search will be done
                 mode = "left",
-                method = "jw",
+                method = "jw", #the fuzzy search method - more info here, need to do some research
                 ignore_case=TRUE,
-                max_dist = 10, 
-                distance_col = "dist") %>%
-  group_by(fooditem.x) %>%
-  slice_min(order_by = dist, n = 5)
+                max_dist = 10, #The maximum distance between the two strings - I believe this varies dependent on the method
+                distance_col = "dist") %>% #This lists the distances and sets the column name they should be listed under - a perfect match should be 0
+  group_by(fooditem.x) %>% #output formatting - this makes it so that the output is organised by the fooditem.x, (x being the first list item at the start of the tool, Kenfct)
+  slice_min(order_by = dist, n = 5) #This means only the closest 5 matches are listed per food item on the FCT
 
 fuzzy_output %>%
   readr::write_excel_csv(., 
