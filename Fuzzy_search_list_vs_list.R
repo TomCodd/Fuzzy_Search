@@ -40,7 +40,7 @@ kenfct <- kenfct %>% mutate(foodgroup = case_when(
   str_starts(code, '15') ~ kenfg[15])) %>% 
   filter(!is.na(ENERC1), !is.na(fooditem)) #Removing NA, SD/min-max
 
-testsample = kenfct[, 1:2]
+testsample = kenfct[, 1:2] #Limits the FCT to the ID and the food item name - this is all that is needed for the Fuzzy match
 
 #Reading from the Dictionary
 dictionary <- read_csv(here::here('metadata', "MAPS_Dictionary_v2.5.csv")) %>%
@@ -48,7 +48,7 @@ dictionary <- read_csv(here::here('metadata', "MAPS_Dictionary_v2.5.csv")) %>%
 
 Encoding(dictionary$fooditem)<-"latin1" #This helps tidy up any special characters into a format that stringdist_join can read. Its setting the column encoding
 
-dict_testsample = dictionary[,c(9,11)]        
+dict_testsample = dictionary[,c(9,11)]   #Limits the Dictionary to the ID and the food item name - this is all that is needed for the Fuzzy match     
 #dict_testsample = dictionary[411,c(9,11)] #This entry was the problematic one - the accented e in rosé caused Fuzzy search to break
 
 fuzzy_output <-stringdist_join(testsample, dict_testsample, #This selects the two lists to check matches against
