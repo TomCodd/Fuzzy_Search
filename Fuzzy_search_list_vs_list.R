@@ -1,6 +1,5 @@
 library(tidyverse)
 library(fuzzyjoin)
-library(stringi)
 
 # Reading in the Kenya Food Composition Table
 kenfct <- readxl::read_excel(here::here('data', "MOH-KENFCT_2018.xlsx"),
