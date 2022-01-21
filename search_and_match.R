@@ -33,7 +33,7 @@ fuzzy_output_selection$"Correct match"<-FALSE
 
 DF <- fuzzy_output_selection #renames the selection going through matches for ease in the form
 
-ui<-(fluidPage( #Sets out the form layout - the title, the Save/Proceed button, and then the details of the table. Constraining the table to a certain height gives it a scrollbar, which is easier.
+ui<-(fluidPage(
   fluidRow(
     titlePanel(
       h1("FCT-Dictionary food item potential matches", align = "center")),
@@ -52,15 +52,15 @@ server<-(function(input,output,session){
   # returns rhandsontable type object - editable excel type grid data
   output$table <- renderRHandsontable({
     rhandsontable(DF) %>%
-      hot_col(1:5, readOnly = TRUE) #Makes sure only the True/False match column is editable.
+      hot_col(1:5, readOnly = TRUE)
   })
   
   # on click of button the file will be saved to the working directory
-  observeEvent(input$saveBtn,
-               write.csv(hot_to_r(input$table), file = "Fuzzy_matches.csv",row.names = FALSE),
-               print("requirements met",
-                     stopApp())) #When clicked, the result is saved and the app is stopped.
-  
+  observeEvent(input$saveBtn, {
+    write.csv(isolate(hot_to_r(input$table)), file = "Fuzzy_matches.csv", row.names = FALSE)
+    print("requirements met")
+    stopApp()
+  })
   # hot_to_r() converts the rhandsontable object to r data object
 })
 

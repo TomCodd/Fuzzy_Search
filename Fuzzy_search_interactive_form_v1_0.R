@@ -73,7 +73,6 @@ fuzzy_output_selection <- fuzzy_output %>%
 names(fuzzy_output_selection)=c("FCT code", "FCT food item", "MAPS ID code", "MAPS dictionary name", "Fuzzy distance")
 fuzzy_output_selection$"Correct match"<-FALSE
 
-
 DF <- fuzzy_output_selection
 
 ui<-(fluidPage(
@@ -99,22 +98,17 @@ server<-(function(input,output,session){
   })
   
   # on click of button the file will be saved to the working directory
-  observeEvent(input$saveBtn,
-               write.csv(hot_to_r(input$table), file = "Fuzzy_matches.csv",row.names = FALSE),
-               print("requirements met",
-                     stopApp()))
-  
-  
+  observeEvent(input$saveBtn, {
+    write.csv(isolate(hot_to_r(input$table)), file = "Fuzzy_matches.csv", row.names = FALSE)
+    print("requirements met")
+    stopApp()
+    })
   # hot_to_r() converts the rhandsontable object to r data object
-  
-  
 })
 
 shinyApp(ui, server)
 
-fuzzy_output %>%
-  readr::write_excel_csv(., 
-                         here::here('output', 'fuzzy_matches.csv'))
+
 
 
 
