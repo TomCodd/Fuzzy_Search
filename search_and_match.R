@@ -58,6 +58,7 @@ server<-(function(input,output,session){
   # on click of button the file will be saved to the working directory
   observeEvent(input$saveBtn, {
     write.csv(isolate(hot_to_r(input$table)), file = "Fuzzy_matches.csv", row.names = FALSE)
+    matched_output <- data.frame(isolate(hot_to_r(input$table))) #https://stackoverflow.com/questions/25282942/submit-data-to-shiny-to-create-data-frame-and-then-write-the-data-frame-to-file
     print("requirements met")
     stopApp()
   })

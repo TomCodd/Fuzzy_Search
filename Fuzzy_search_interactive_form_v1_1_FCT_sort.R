@@ -108,25 +108,30 @@ ui<-(fluidPage(
 server<-(function(input,output,session){
   
   values <- reactiveValues(data = DF)
+  
+  
   observeEvent(input$table,{
-    values$data<-as.data.frame(hot_to_r(input$table))
+    input_table<-as.data.frame(hot_to_r(input$table))
     
-    matched_codes <- values$data[3][values$data[7] == TRUE] #Creates a list of list A codes that have been successfully matched
-    print(matched_codes)
-    incorrect_match_rows <- values$data[1][values$data[3] %in% matched_codes & values$data[7] == FALSE]
-    print(incorrect_match_rows)
-    #print(length(incorrect_match_rows)>0)
-    #print("matches made") #This is just me trying to test if it gets this far
-    values$data[,2] <- values$data[,1]
-    values$data[,2][which(values$data[,1] %in% incorrect_match_rows)]<-NA
-    values$data<-values$data[order(values$data[,2], na.last=TRUE),]
+    matched_dict_codes <- input_table[,3][input_table[,7] == TRUE] #Creates a list of list A codes that have been successfully matched
+    matched_FCT_codes <- input_table[,5][input_table[,7] == TRUE]
+    print(matched_dict_codes)
+    print(matched_FCT_codes)
+    incorrect_matched_codes <- input_table[,1][input_table[,3] %in% matched_dict_codes & input_table[,7] == FALSE | input_table[,5] %in% matched_FCT_codes & input_table[,7] == FALSE]
+    print(incorrect_matched_codes)
+    input_table[,2] <- input_table[,1]
+    input_table[,2][which(input_table[,1] %in% incorrect_matched_codes)]<-NA
+    input_table<-input_table[order(input_table[,2], na.last=TRUE),]
+    values$data<-input_table
     #print(values$data)
     
-    output$table <- renderRHandsontable({
-      rhandsontable(values$data)%>%
-        hot_col(1:6, readOnly = TRUE) %>% #Outputs the table, and makes it so that only the True/False column is editable
-        hot_col(1:2, width = 0.5) %>%
-        hot_col(1:6, renderer = "
+  })
+  
+  output$table <- renderRHandsontable({
+    rhandsontable(values$data)%>%
+      hot_col(1:6, readOnly = TRUE) %>% #Outputs the table, and makes it so that only the True/False column is editable
+      hot_col(1:2, width = 0.5) %>%
+      hot_col(1:6, renderer = "
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.TextRenderer.apply(this, arguments);
              var ID = instance.getData()[row][0]
@@ -136,7 +141,7 @@ server<-(function(input,output,session){
               cellProperties.rowheight = '1';
              }
            }") %>%
-        hot_col(7, renderer = "
+      hot_col(7, renderer = "
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.CheckboxRenderer.apply(this, arguments);
              var ID = instance.getData()[row][0]
@@ -146,23 +151,11 @@ server<-(function(input,output,session){
               cellProperties.readOnly = true;
              }
            }")
-      
-    })
-  })
-  output$table <- renderRHandsontable({
-    rhandsontable(values$data)%>%
-      hot_col(1:6, readOnly = TRUE) %>% #Outputs the table, and makes it so that only the True/False column is editable
-      hot_col(1:2, width = 0.5)
   })
   
   observeEvent(input$saveBtn, {
-    export_table<-as.data.frame(hot_to_r(input$table))
-    print(export_table)
-    filtered_export_table <- export_table[export_table[7] == TRUE]
-    print(filtered_export_table)
     write.csv(isolate(hot_to_r(input$table)), file = "Fuzzy_matches_unfiltered.csv", row.names = FALSE)
-    write.csv(filtered_export_table, file = "Fuzzy_matches.csv", row.names = FALSE)
-    #print("requirements met")
+    print("requirements met")
     #matched_fuzzy_objects<-write.table(isolate(hot_to_r(input$table)))
     stopApp()
     #print("processing can happen after stopApp")
