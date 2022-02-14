@@ -96,18 +96,20 @@ DF <- fuzzy_output_selection
 
 ui<-(fluidPage(
   fluidRow(
-    titlePanel(
-      h1("food item potential matches", align = "center")),
-    sidebarPanel(
-      actionButton("saveBtn", "All matches identified")),
-    mainPanel(
-      rHandsontableOutput("table", height = "500px"),
-      br()
-      
-      
-    )
-  )
-))
+    column(12,
+           h1("food item potential matches", align = "center"))),
+  fluidRow(
+    column(12,
+           actionButton("saveBtn", "All matches identified"))),
+  fluidRow(
+    column(12,
+           br())),
+  fluidRow(
+    column(12,
+           rHandsontableOutput("table", height = "500px"))),
+)
+)
+
 server<-(function(input,output,session){
   
   values <- reactiveValues(data = DF)
