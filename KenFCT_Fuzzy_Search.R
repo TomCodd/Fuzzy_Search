@@ -43,6 +43,8 @@ kenfct <- kenfct %>% mutate(foodgroup = case_when(
 
 testsample = kenfct[, 1:2] #Limits the FCT to the ID and the food item name - this is all that is needed for the Fuzzy match
 
+FCT_item_number <- nrow(testsample)
+start_time <- Sys.time()
 #Reading from the Dictionary
 
 dictionary <- read.csv("https://raw.githubusercontent.com/LuciaSegovia/MAPS_fct/main/metadata/MAPS_Dictionary_v2.5.csv", encoding = "latin1", na.strings=c("","NA")) %>%
@@ -120,15 +122,11 @@ server<-(function(input,output,session){
     
     matched_dict_codes <- input_table[,3][input_table[,7] == TRUE] #Creates a list of list A codes that have been successfully matched
     matched_FCT_codes <- input_table[,5][input_table[,7] == TRUE]
-    print(matched_dict_codes)
-    print(matched_FCT_codes)
     incorrect_matched_codes <- input_table[,1][input_table[,3] %in% matched_dict_codes & input_table[,7] == FALSE | input_table[,5] %in% matched_FCT_codes & input_table[,7] == FALSE]
-    print(incorrect_matched_codes)
     input_table[,2] <- input_table[,1]
     input_table[,2][which(input_table[,1] %in% incorrect_matched_codes)]<-NA
     input_table<-input_table[order(input_table[,2], na.last=TRUE),]
     values$data<-input_table
-    #print(values$data)
     
   })
   
@@ -174,10 +172,12 @@ server<-(function(input,output,session){
     matches <- output_table[,1][output_table[,7] == TRUE]
     true_matches <- output_table%>%
       filter (ID %in% matches)
+    percent_completed <- round((nrow(true_matches)/FCT_item_number), digits = 2)
     true_matches_without_confidence <- true_matches %>%
       filter (Confidence == "")
     match_IDs_without_confidence <- true_matches_without_confidence$ID
-    print(match_IDs_without_confidence)
+    end_time <- Sys.time()
+    time_taken <- round((end_time-start_time)/60, digits = 2)
     if (nrow(true_matches_without_confidence)>0){
       showModal(modalDialog(
         title = "Please select confidence values for these rows:",
@@ -186,10 +186,18 @@ server<-(function(input,output,session){
       ))
     } else {
       write.csv(true_matches, file = "Fuzzy_search_matches.csv", row.names = FALSE)
-      stopApp()
+      showModal(modalDialog(
+        title = str_c("You have matched ", nrow(true_matches), " items!"),
+        str_c("Thats ", percent_completed, "% of the FCT (", FCT_item_number, " items), and took ",  time_taken, " minutes."),
+        footer = actionButton("closeButton", "Close tool"),
+        easyClose = TRUE
+      ))
     }
   })
+  observeEvent(input$closeButton, {
+    print("close button pressed")
+    stopApp()
+  })
 })
-
 
 shinyApp(ui, server)
