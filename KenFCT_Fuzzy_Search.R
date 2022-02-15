@@ -195,7 +195,6 @@ server<-(function(input,output,session){
     }
   })
   observeEvent(input$closeButton, {
-    print("close button pressed")
     stopApp()
   })
 })
