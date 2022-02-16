@@ -185,7 +185,7 @@ server<-(function(input,output,session){
         easyClose = TRUE
       ))
     } else {
-      write.csv(true_matches, file = "Fuzzy_search_matches.csv", row.names = FALSE)
+      write.csv(true_matches, file = "KenFCT_Fuzzy_search_matches.csv", row.names = FALSE)
       showModal(modalDialog(
         title = str_c("You have matched ", nrow(true_matches), " items!"),
         str_c("Thats ", percent_completed, "% of the FCT (", FCT_item_number, " items), and took ",  time_taken, " minutes."),
