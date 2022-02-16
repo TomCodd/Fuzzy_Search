@@ -9,6 +9,8 @@ MAFoods_FCT<- read.csv(here::here('output', 'MAPS_MAFOODS_v1.2.csv'))
 testsample = MAFoods_FCT[, 1:2] %>%
   rename(fooditem = original_food_name) #Limits the FCT to the ID and the food item name - this is all that is needed for the Fuzzy match
 
+FCT_item_number <- nrow(testsample)
+start_time <- Sys.time()
 #Reading from the Dictionary
 
 dictionary <- read.csv("https://raw.githubusercontent.com/LuciaSegovia/MAPS_fct/main/metadata/MAPS_Dictionary_v2.5.csv", encoding = "latin1", na.strings=c("","NA")) %>%
@@ -86,15 +88,11 @@ server<-(function(input,output,session){
     
     matched_dict_codes <- input_table[,3][input_table[,7] == TRUE] #Creates a list of list A codes that have been successfully matched
     matched_FCT_codes <- input_table[,5][input_table[,7] == TRUE]
-    print(matched_dict_codes)
-    print(matched_FCT_codes)
     incorrect_matched_codes <- input_table[,1][input_table[,3] %in% matched_dict_codes & input_table[,7] == FALSE | input_table[,5] %in% matched_FCT_codes & input_table[,7] == FALSE]
-    print(incorrect_matched_codes)
     input_table[,2] <- input_table[,1]
     input_table[,2][which(input_table[,1] %in% incorrect_matched_codes)]<-NA
     input_table<-input_table[order(input_table[,2], na.last=TRUE),]
     values$data<-input_table
-    #print(values$data)
     
   })
   
@@ -153,7 +151,7 @@ server<-(function(input,output,session){
         easyClose = TRUE
       ))
     } else {
-      write.csv(true_matches, file = "MAFoods_FCT_Fuzzy_search_matches.csv", row.names = FALSE)
+      write.csv(true_matches, file = "MAFoods_Fuzzy_search_matches.csv", row.names = FALSE)
       showModal(modalDialog(
         title = str_c("You have matched ", nrow(true_matches), " items!"),
         str_c("Thats ", percent_completed, "% of the FCT (", FCT_item_number, " items), and took ",  time_taken, " minutes."),
