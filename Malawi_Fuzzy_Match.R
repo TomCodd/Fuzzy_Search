@@ -142,8 +142,7 @@ server<-(function(input,output,session){
     true_matches_without_confidence <- true_matches %>%
       filter (Confidence == "")
     match_IDs_without_confidence <- true_matches_without_confidence$ID
-    end_time <- Sys.time()
-    time_taken <- round((end_time-start_time)/60, digits = 2)
+    output_matches <- true_matches[-c(1,2,7)]
     if (nrow(true_matches_without_confidence)>0){
       showModal(modalDialog(
         title = "Please select confidence values for these rows:",
@@ -151,14 +150,37 @@ server<-(function(input,output,session){
         easyClose = TRUE
       ))
     } else {
-      write.csv(true_matches, file = "MAFoods_Fuzzy_search_matches.csv", row.names = FALSE)
       showModal(modalDialog(
-        title = str_c("You have matched ", nrow(true_matches), " items!"),
-        str_c("Thats ", percent_completed, "% of the FCT (", FCT_item_number, " items), and took ",  time_taken, " minutes."),
-        footer = actionButton("closeButton", "Close tool"),
-        easyClose = TRUE
+        title = "Please select save options",
+        radioButtons("outputoption", h4("Output options"),
+                     choices = list("R dataframe" = 1, "CSV file" = 2)),
+        textInput("FileName", "Choose file/dataframe name",
+                  value = "fuzzy_match_output"),
+        footer = actionButton("outputcontinue", "Continue")
       ))
     }
+    
+    observeEvent(input$outputcontinue, {
+      end_time <- Sys.time()
+      time_taken <- round((end_time-start_time), digits = 2)
+      if (input$outputoption == 1){
+        assign(paste0(input$FileName), output_matches, envir = .GlobalEnv)
+        showModal(modalDialog(
+          title = str_c("You have matched ", nrow(true_matches), " items!"),
+          str_c("Thats ", percent_completed, "% of the FCT (", FCT_item_number, " items), and took ",  time_taken, " ", units(time_taken)),
+          footer = actionButton("closeButton", "Close tool"),
+          easyClose = TRUE
+        ))
+      } else {
+        write.csv(output_matches, file = paste0(input$FileName, ".csv"), row.names = FALSE)
+        showModal(modalDialog(
+          title = str_c("You have matched ", nrow(true_matches), " items!"),
+          str_c("Thats ", percent_completed, "% of the FCT (", FCT_item_number, " items), and took ",  time_taken, " ", units(time_taken)),
+          footer = actionButton("closeButton", "Close tool"),
+          easyClose = TRUE
+        ))
+      }
+    })
   })
   observeEvent(input$closeButton, {
     stopApp()
