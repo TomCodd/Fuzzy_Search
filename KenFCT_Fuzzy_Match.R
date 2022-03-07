@@ -52,7 +52,7 @@ dictionary <- read.csv("https://raw.githubusercontent.com/LuciaSegovia/MAPS_fct/
 
 dict_testsample = dictionary[,c(9,11)]   #Limits the Dictionary to the ID and the food item name - this is all that is needed for the Fuzzy match     
 
-fuzzy_output <-stringdist_join(dict_testsample, testsample, #This selects the two lists to check matches against
+fuzzy_output <-stringdist_join(testsample, dict_testsample, #This selects the two lists to check matches against
                                by = "fooditem", #This allows you to select the field by which the search will be done
                                mode = "left",
                                method = "jw", #the fuzzy search method - more info here, need to do some research
@@ -70,14 +70,14 @@ fuzzy_output_selection <- fuzzy_output %>%
 fuzzy_output_selection$cor_match<-FALSE
 
 fuzzy_output_selection$Item_min_dist <- ""
-unique_entries <- unique(fuzzy_output_selection$ID_3)
+unique_entries <- unique(fuzzy_output_selection$code)
 
 for (i in 1:length(unique_entries)){
   i_subsection <- fuzzy_output_selection %>%
-    filter(ID_3 == unique_entries[i])
+    filter(code == unique_entries[i])
   i_min <- min(i_subsection$dist)
   
-  fuzzy_output_selection <- fuzzy_output_selection %>% mutate(Item_min_dist = replace(Item_min_dist, ID_3 == unique_entries[i], i_min))
+  fuzzy_output_selection <- fuzzy_output_selection %>% mutate(Item_min_dist = replace(Item_min_dist, code == unique_entries[i], i_min))
 }
 
 fuzzy_output_selection <- fuzzy_output_selection[order(fuzzy_output_selection$Item_min_dist),]
@@ -91,7 +91,7 @@ fuzzy_output_selection <- fuzzy_output_selection %>%
 fuzzy_output_selection <- fuzzy_output_selection[,-c(7,10)]
 
 
-names(fuzzy_output_selection)=c("ID", "Pseudo ID" , "MAPS ID code", "MAPS dictionary name", "FCT code", "FCT food item",  "Correct Match", "Confidence")
+names(fuzzy_output_selection)=c("ID", "Pseudo ID" , "FCT code", "FCT food item", "MAPS ID code", "MAPS dictionary name",  "Correct Match", "Confidence")
 
 DF <- fuzzy_output_selection
 
