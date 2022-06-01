@@ -145,7 +145,7 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that ma
         hot_col(1:2, width = 0.5) %>% #sets the ID and PseudoID columns to be very narrow, so they don't appear visible
         hot_col(col="Confidence", type = "dropdown", source = c("","high", "medium", "low")) %>% #Creates the confidence dropdown for that column
         
-        #These renderers colour the incorrect matches pink, and make them uneditable
+        #These renderers colour the incorrect matches pink, and make them uneditable - different renderers for the different type of columns
         hot_col(1:6, renderer = "
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -194,7 +194,7 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that ma
           str_c(match_IDs_without_confidence, collapse = ", "),
           easyClose = TRUE
         ))
-      } else {
+      } else { #Otherwise, the save options Modal appears
         showModal(modalDialog(
           title = "Please select save options",
           radioButtons("outputoption", h4("Output options"),
@@ -205,7 +205,7 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that ma
         ))
       }
       
-      observeEvent(input$outputcontinue, {
+      observeEvent(input$outputcontinue, { #Once the save buttons are selected and confirmed, the summary screen appears
         end_time <- Sys.time()
         time_taken <- round((end_time-start_time), digits = 2)
         if (input$outputoption == 1){
@@ -216,7 +216,7 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that ma
             footer = actionButton("closeButton", "Close tool"),
             easyClose = TRUE
           ))
-        } else {
+        } else { #With different outcomes if the R object or CSV outputs have been selected.
           write.csv(output_matches, file = paste0(input$FileName, ".csv"), row.names = FALSE)
           showModal(modalDialog(
             title = str_c("You have matched ", nrow(true_matches), " items!"),
@@ -227,7 +227,7 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that ma
         }
       })
     })
-    observeEvent(input$closeButton, {
+    observeEvent(input$closeButton, { #Controls the closing of the app
       stopApp()
     })
   })
