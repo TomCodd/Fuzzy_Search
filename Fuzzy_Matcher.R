@@ -2,10 +2,32 @@ library(tidyverse)
 library(fuzzyjoin)
 library(rhandsontable)
 library(shiny)
+library (docstring)
 
-#Currently, the input is two dataframes, stripped down to their ID and item name columns, in that order
+#Currently, the input is two dataframes, stripped down to their ID and item name 
+#columns, in that order
 
-Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that makes the filtering more lenient - use to catch more items with this term in them. Default is "raw".
+Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that 
+  #makes the filtering more lenient - use to catch more items with this term in 
+  #them. Default is "raw".
+  
+  #' A GUI interface to match rows in two dataframes to each other via a fuzzy 
+  #' string search
+  #' 
+  #' @description This function reads in two dataframes, both comprised of an ID
+  #' row and a name row. The name rows are matched based on fuzzy search 
+  #' suggestions and human confirmation using the GUI interface.
+  #' 
+  #' 
+  #' @param df1 Required - The primary data frame, with items that need matches.
+  #' @param df2 Required - The secondary data frame, with a list of potential
+  #' items to match the contents of df1 against.
+  #' @param focus_term Optional - Specify a string. If the string is contained 
+  #' in the item name, then the fuzzy matcher opens a wider potential list of 
+  #' matches to that item.
+  #' @return An R object of csv that contains items from \code{df1} and their 
+  #' counterparts from \code{df2} in the same row.
+  
   
   # Data input checking ----
   
@@ -15,7 +37,10 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that ma
   stopifnot("df2 is not a data frame - please input a data frame consisting of an id/code column and an item name column." = is.data.frame(df2))
   stopifnot("df1 is too long - please make sure the input dataframes are two columns in length." = (length(df1) == 2))
   stopifnot("df2 is too long - please make sure the input dataframes are two columns in length." = (length(df2) == 2))
+  
+  if(!missing(focus_term)){
   stopifnot("The focus term is not a character or string - please input a character or string, e.g. 'raw'" = is.character(focus_term))
+  }
 
   
   
@@ -65,12 +90,15 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that ma
   
   fuzzy_output_selection <- fuzzy_output %>% 
     group_by(item_name.x) %>% #output formatting - this makes it so that the output is organised by the item_name.x, (x being the first list item at the start of the tool)
-    slice_min(dist, n = 5) %>% #This means only the closest 5 matches are listed per item on the second dataframe
-    filter(grepl(focus_term, item_name.x) | dist<=0.225) #This introduces a filter. By combining this with the max_dist in the fuzzy search,  the end
-  # result is that any items with the focus term in their name are listed if their distance is under 0.3, 
-  # along with anything with a distance of 0.225 or lower. This makes the distance more forgiving for items with that focus term in them.
+    slice_min(dist, n = 5) #This means only the closest 5 matches are listed per item on the second dataframe
+    
   
-  
+  if(!missing(focus_term)){
+    fuzzy_output_selection <- fuzzy_output_selection %>%
+      filter(grepl(focus_term, item_name.x) | dist<=0.225) #This introduces a filter. By combining this with the max_dist in the fuzzy search,  the end
+    }# result is that any items with the focus term in their name are listed if their distance is under 0.3, 
+    # along with anything with a distance of 0.225 or lower. This makes the distance more forgiving for items with that focus term in them.
+    
   
   # Prep work for match confirmations ----
   
