@@ -20,8 +20,10 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that
   #' 
   #' 
   #' @param df1 Required - The primary data frame, with items that need matches.
+  #' The first column must be the ID column, the second must be the item names.
   #' @param df2 Required - The secondary data frame, with a list of potential
-  #' items to match the contents of df1 against.
+  #' items to match the contents of df1 against. The first column must be the ID
+  #' column, the second must be the item names.
   #' @param focus_term Optional - Specify a string. If the string is contained 
   #' in the item name, then the fuzzy matcher opens a wider potential list of 
   #' matches to that item.
@@ -211,7 +213,7 @@ Fuzzy_Matcher <- function(df1, df2, focus_term){ #Focus term is a string that
       matches <- output_table[,1][output_table[,7] == TRUE] #Creates a list of the match row ID's
       true_matches <- output_table%>%
         filter (ID %in% matches) #Creates a subset for those row ID's
-      percent_completed <- round((nrow(true_matches)/df1_item_number), digits = 2) #matching metadata is added - how many rows from df1 were matched
+      percent_completed <- round((nrow(true_matches)/df1_item_number), digits = 2)*100 #matching metadata is added - how many rows from df1 were matched
       true_matches_without_confidence <- true_matches %>% #Checks all matches have a confidence value
         filter (Confidence == "")
       match_IDs_without_confidence <- true_matches_without_confidence$ID
