@@ -15,7 +15,7 @@ ken_names <- c('code', 'fooditem', 'EDIBLE', 'ENERC2', 'ENERC1', 'WATER',
                'VITA_RAE', 'VITA', 'RETOL', 'CARBEQ', 
                'THIA', 'RIBF', 'NIA', 'FOLDFE', 'FOLFD',
                'VITB12', 'VITC', 'CHOLE', 'OXALAC', 'PHYTCPPD', 'IP3', 'IP4',
-               'IP5', 'IP6','FASAT', "FAMS","FAPU", 'FCT')
+               'IP5', 'IP6','FASAT', "FAMS", "FAPU", 'FCT')
 
 kenfct <- kenfct %>% rename_at(vars(1:37, 60:62, 320),  ~ken_names) 
 
@@ -85,13 +85,15 @@ fuzzy_output_selection <- fuzzy_output_selection[order(fuzzy_output_selection$It
 fuzzy_output_selection <- tibble::rowid_to_column(fuzzy_output_selection, "ID")
 fuzzy_output_selection$Pseudo_ID <- fuzzy_output_selection$ID
 fuzzy_output_selection$Confidence <- ""
-fuzzy_output_selection <- fuzzy_output_selection %>% 
+fuzzy_output_selection$TermComp <- "" #This creates the Term Complexity column
+fuzzy_output_selection <- fuzzy_output_selection %>% #This moves columns around for ease of reading in the output table
   relocate(Pseudo_ID, .after = ID) %>% 
-  relocate(Confidence, .after = cor_match)
-fuzzy_output_selection <- fuzzy_output_selection[,-c(7,10)]
+  relocate(Confidence, .after = cor_match) %>% 
+  relocate(TermComp, .after = Confidence)
+fuzzy_output_selection <- fuzzy_output_selection[,-c(7,11)] #This removes certain rows no longer needed - dist and item_min_dist
 
 
-names(fuzzy_output_selection)=c("ID", "Pseudo ID" , "FCT code", "FCT food item", "MAPS ID code", "MAPS dictionary name",  "Correct Match", "Confidence")
+names(fuzzy_output_selection)=c("ID", "Pseudo ID" , "FCT code", "FCT food item", "MAPS ID code", "MAPS dictionary name",  "Correct Match", "Confidence", "Term Complexity")
 
 DF <- fuzzy_output_selection
 
@@ -131,10 +133,14 @@ server<-(function(input,output,session){
   })
   
   output$table <- renderRHandsontable({
-    rhandsontable(values$data)%>%
+    rhandsontable(values$data)%>% #outputs the data table
       hot_col(1:6, readOnly = TRUE) %>% #Outputs the table, and makes it so that only the True/False column is editable
-      hot_col(1:2, width = 0.5) %>%
-      hot_col(col="Confidence", type = "dropdown", source = c("","high", "medium", "low")) %>%
+      hot_col(1:2, width = 0.5) %>% #sets the ID and PseudoID columns to be very narrow, so they don't appear visible
+      hot_col(col="Confidence", type = "dropdown", source = c("","high", "medium", "low")) %>% #Creates the confidence dropdown for that column
+      hot_col(col="Term Complexity", type = "dropdown", source = c("","Too Complex")) %>% #Creates the confidence dropdown for that column
+      
+      
+      #These renderers colour the incorrect matches pink, and make them uneditable - different renderers for the different type of columns
       hot_col(1:6, renderer = "
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.TextRenderer.apply(this, arguments);
@@ -156,6 +162,16 @@ server<-(function(input,output,session){
              }
            }") %>%
       hot_col(8, renderer = "
+           function (instance, td, row, col, prop, value, cellProperties) {
+             Handsontable.renderers.DropdownRenderer.apply(this, arguments);
+             var ID = instance.getData()[row][0]
+             var pseudoID = instance.getData()[row][1]
+             if (ID !== pseudoID) {
+              td.style.background = 'pink';
+              cellProperties.readOnly = true;
+             }
+           }") %>%
+      hot_col(9, renderer = "
            function (instance, td, row, col, prop, value, cellProperties) {
              Handsontable.renderers.DropdownRenderer.apply(this, arguments);
              var ID = instance.getData()[row][0]
