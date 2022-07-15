@@ -225,7 +225,7 @@ Fuzzy_Matcher_HCD_fp <- function(df1, df2, focus_term){ #Focus term is a string 
     observeEvent(input$saveBtn, { #Controls what happens when the save button is pressed
       output_table <- as.data.frame(hot_to_r(input$table)) #Creates an output table from the current data table
       matches <- output_table[,1][output_table[,7] == TRUE] #Creates a list of the match row ID's
-      true_matches <- output_table%>%
+      true_matches <- output_table %>%
         filter (ID %in% matches) #Creates a subset for those row ID's
       percent_completed <- round((nrow(true_matches)/df1_item_number), digits = 2)*100 #matching metadata is added - how many rows from df1 were matched
       true_matches_without_confidence <- true_matches %>% #Checks all matches have a confidence value
