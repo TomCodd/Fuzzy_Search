@@ -4,13 +4,21 @@ library(rhandsontable)
 library(shiny)
 library (docstring)
 
-Column_Creator <- function(df, name){
+Column_Creator <- function(df, name){ #This function creates an empty column.
   new_column_name <- paste0("separate by '", name, "'?")
   df$x <- ""
   colnames(df)[colnames(df) == "x"] <- new_column_name
   return(df)
 }
 
+Term_Counter <- function(string, term_list){ #This function counts the number of times an item in a list of strings appears in a main string.
+  term_number <- 0
+  for (i in 1:length(term_list)){
+    term <- term_list[i]
+    term_number <- term_number + lengths(regmatches(string, gregexpr(term, string)))
+  }
+  return(term_number)
+}
 
 #Currently, the input is two dataframes, stripped down to their ID and item name 
 #columns, in that order
@@ -57,10 +65,9 @@ Term_Separator <- function(df, separation_terms = c(",", "and")){ #Focus term is
   start_time <- Sys.time() #Start time for the timer is set
   
   
-  df1_names <- colnames(df1) #original column names are taken for preservation
-  df2_names <- colnames(df2)
+  df_names <- colnames(df) #original column names are taken for preservation
   
-  for (i in (1:length(separation_terms))){
+  for (i in (1:length(separation_terms))){ #This creates a column for each of the seperation terms.
     df <- Column_Creator(df, separation_terms[i])
   }
   
@@ -70,15 +77,16 @@ Term_Separator <- function(df, separation_terms = c(",", "and")){ #Focus term is
   
   for (i in (4:ncol(df))){
     additional_name <- colnames(df)[i]
-    new_column_names <- c(new_column_names, additional_name)
+    new_column_names <- c(new_column_names, additional_name) #This adds the seperation term column names to the new column name list
   }
 
+  df <- transform(df, order = Term_Counter(df[,2], separation_terms)) #This creates the order column, and for each row it counts the number of times a seperation term appears in the name column and adds the number here
   
+  df <- df %>% relocate(order) #puts the order column to the front of the dataframe
   
+  colnames(fuzzy_output_selection) <- new_column_names #renames the column names
   
-  colnames(fuzzy_output_selection) <- new_column_names
-  
-  
+  df <- df[order(-df$order),] #sorts the data frame in descending order by the "order" column - the names with the most separation terms should appear  at the top.
   
   # RShiny - Match confirmation ----
   
